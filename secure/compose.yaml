@@ -1,0 +1,46 @@
+# Защищённый учебный брокер (модуль M11, урок m11_l03): вход по логину и паролю (SASL/PLAIN) и права ACL.
+# Отдельный проект Compose (kafka-secure), не мешает одиночному стенду. Запуск: make secure-up
+# Учебные пароли лежат прямо здесь. В проде пароли хранят в секретах, а соединение шифруют TLS (SASL_SSL).
+name: kafka-secure
+
+services:
+  kafka-secure:
+    image: apache/kafka:4.1.1
+    container_name: kafka-secure
+    mem_limit: 900m
+    ports:
+      - "39092:39092"   # с машины Codespace: localhost:39092, вход по логину и паролю
+    environment:
+      CLUSTER_ID: U2VjdXJlQ291cnNlMDAx
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-secure:9093
+      KAFKA_LISTENERS: INTERNAL://:9092,EXTERNAL://:39092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka-secure:9092,EXTERNAL://localhost:39092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:SASL_PLAINTEXT,EXTERNAL:SASL_PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_SASL_ENABLED_MECHANISMS: PLAIN
+      KAFKA_SASL_MECHANISM_INTER_BROKER_PROTOCOL: PLAIN
+      # Пользователи и пароли (учебно): admin — администратор, alice — пишет заказы, bob — читает их.
+      KAFKA_LISTENER_NAME_INTERNAL_PLAIN_SASL_JAAS_CONFIG: >-
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        username="admin" password="admin-secret"
+        user_admin="admin-secret" user_alice="alice-secret" user_bob="bob-secret";
+      KAFKA_LISTENER_NAME_EXTERNAL_PLAIN_SASL_JAAS_CONFIG: >-
+        org.apache.kafka.common.security.plain.PlainLoginModule required
+        user_admin="admin-secret" user_alice="alice-secret" user_bob="bob-secret";
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_SUPER_USERS: User:admin;User:ANONYMOUS    # ANONYMOUS — сам брокер на listener контроллера
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: "false"   # нет правила — нет доступа
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_HEAP_OPTS: -Xms256m -Xmx384m
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z localhost 39092"]
+      interval: 5s
+      timeout: 5s
+      retries: 30

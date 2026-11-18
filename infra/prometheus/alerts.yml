@@ -1,0 +1,12 @@
+# Правила алертов модуля M10.
+groups:
+  - name: course
+    rules:
+      - alert: MetricsMissing
+        expr: up{job="kafka-exporter"} == 0
+        for: 30s
+        annotations: {summary: 'Метрики Kafka не собираются: пустой график — не ноль'}
+      - alert: ConsumerLagGrowing
+        expr: sum by (consumergroup) (kafka_consumergroup_lag) > 100 and sum by (consumergroup) (deriv(kafka_consumergroup_lag[1m])) > 0
+        for: 30s
+        annotations: {summary: 'Группа {{ $labels.consumergroup }} отстаёт и отставание растёт'}

@@ -1,0 +1,17 @@
+#!/bin/bash
+# Запуск консольных утилит Kafka внутри контейнера kafka.
+#   bin/kafka topics --list           = kafka-topics.sh --bootstrap-server localhost:9092 --list
+#   bin/kafka console-producer --topic t
+#   bin/kafka console-consumer --topic t --from-beginning
+#   bin/kafka consumer-groups --list
+# Флаг --bootstrap-server подставляется автоматически.
+set -e
+if [ -z "$1" ]; then
+  echo "Использование: bin/kafka <утилита> [параметры]   (утилиты: topics, console-producer, console-consumer, consumer-groups, configs, get-offsets)" >&2
+  exit 1
+fi
+tool="$1"; shift
+cd "$(dirname "$0")/.."
+tty_flag=""
+[ -t 0 ] || tty_flag="-T"
+exec docker compose exec $tty_flag kafka /opt/kafka/bin/kafka-$tool.sh --bootstrap-server localhost:9092 "$@"

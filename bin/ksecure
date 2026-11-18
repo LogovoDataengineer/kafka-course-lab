@@ -1,0 +1,14 @@
+#!/bin/bash
+# Утилиты Kafka для защищённого брокера (secure/compose.yaml) от имени администратора.
+#   bin/ksecure acls --list
+# --bootstrap-server и файл с логином администратора подставляются автоматически.
+set -e
+[ -n "$1" ] || { echo "Использование: bin/ksecure <утилита> [параметры]" >&2; exit 1; }
+tool="$1"; shift
+cd "$(dirname "$0")/../secure"
+docker cp admin.properties kafka-secure:/tmp/admin.properties >/dev/null
+config_flag="--command-config"
+[ "$tool" = "console-producer" ] && config_flag="--producer.config"
+[ "$tool" = "console-consumer" ] && config_flag="--consumer.config"
+tty_flag=""; [ -t 0 ] || tty_flag="-T"
+exec docker compose exec $tty_flag kafka-secure /opt/kafka/bin/kafka-$tool.sh --bootstrap-server kafka-secure:9092 $config_flag /tmp/admin.properties "$@"

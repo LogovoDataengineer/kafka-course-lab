@@ -1,0 +1,12 @@
+#!/bin/bash
+# SQL-запрос к учебному хранилищу (контейнер dwh, база warehouse).
+#   bin/sql "SELECT count(*) FROM events;"
+#   bin/sql < file.sql — выполнить файл
+#   bin/sql            — интерактивный psql, выход: \q
+cd "$(dirname "$0")/.."
+tty_flag=""
+[ -t 0 ] || tty_flag="-T"
+if [ -n "$1" ]; then
+  exec docker compose exec $tty_flag dwh psql -U course -d warehouse -P pager=off -c "$1"
+fi
+exec docker compose exec $tty_flag dwh psql -U course -d warehouse -P pager=off -v ON_ERROR_STOP=1

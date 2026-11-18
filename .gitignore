@@ -1,0 +1,6 @@
+.venv/
+__pycache__/
+*.pyc
+data/live.jsonl
+sent-*.log
+state/

@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "CourseEvent",
+  "namespace": "course",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string"
+    },
+    {
+      "name": "entity_id",
+      "type": "string"
+    },
+    {
+      "name": "version",
+      "type": "long"
+    },
+    {
+      "name": "payload",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Kafka course",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "hostRequirements": {
+    "cpus": 2,
+    "memory": "8gb",
+    "storage": "32gb"
+  },
+  "forwardPorts": [18080],
+  "portsAttributes": {
+    "18080": { "label": "Kafbat UI", "onAutoForward": "notify" },
+    "19092": { "label": "Kafka", "onAutoForward": "silent" },
+    "15433": { "label": "DWH PostgreSQL", "onAutoForward": "silent" },
+    "18081": { "label": "Schema Registry", "onAutoForward": "silent" },
+    "18083": { "label": "Kafka Connect", "onAutoForward": "silent" },
+    "15432": { "label": "Source PostgreSQL", "onAutoForward": "silent" },
+    "19090": { "label": "Prometheus", "onAutoForward": "silent" },
+    "13000": { "label": "Grafana", "onAutoForward": "notify" }
+  },
+  "postCreateCommand": "pip install --user -r requirements.txt",
+  "customizations": {
+    "vscode": {
+      "extensions": ["ms-python.python"]
+    }
+  }
+}

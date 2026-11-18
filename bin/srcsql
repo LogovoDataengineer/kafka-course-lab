@@ -1,0 +1,11 @@
+#!/bin/bash
+# SQL-запрос к базе-источнику (контейнер source, база shop).
+#   bin/srcsql "SELECT count(*) FROM orders;"
+#   bin/srcsql < file.sql — выполнить файл
+cd "$(dirname "$0")/.."
+tty_flag=""
+[ -t 0 ] || tty_flag="-T"
+if [ -n "$1" ]; then
+  exec docker compose exec $tty_flag source psql -U course -d shop -P pager=off -c "$1"
+fi
+exec docker compose exec $tty_flag source psql -U course -d shop -P pager=off -v ON_ERROR_STOP=1

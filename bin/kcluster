@@ -1,0 +1,16 @@
+#!/bin/bash
+# Утилиты Kafka для учебного кластера из трёх брокеров (cluster/compose.yaml).
+#   bin/kcluster topics --describe --topic t
+# Запускается в первом живом брокере; --bootstrap-server подставляется автоматически.
+set -e
+[ -n "$1" ] || { echo "Использование: bin/kcluster <утилита> [параметры]" >&2; exit 1; }
+tool="$1"; shift
+cd "$(dirname "$0")/../cluster"
+running=()
+for b in kafka-1 kafka-2 kafka-3; do
+  [ "$(docker inspect -f '{{.State.Running}}' "$b" 2>/dev/null)" = "true" ] && running+=("$b")
+done
+[ ${#running[@]} -gt 0 ] || { echo "Ни один брокер кластера не запущен: make cluster-up" >&2; exit 1; }
+servers=$(printf '%s:9092,' "${running[@]}"); servers=${servers%,}
+tty_flag=""; [ -t 0 ] || tty_flag="-T"
+exec docker compose exec $tty_flag "${running[0]}" /opt/kafka/bin/kafka-$tool.sh --bootstrap-server "$servers" "$@"
